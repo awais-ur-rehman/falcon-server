@@ -21,9 +21,21 @@ export const userSchema = new Schema(
       trim: true,
       lowercase: true,
     },
-    password: {
+    phoneNumber: {
       type: String,
       required: true,
+      unique: true,
+      trim: true,
+    },
+    cnic: {
+      type: String,
+      required: false, // Will be set during first login
+      default: null,
+    },
+    password: {
+      type: String,
+      required: false, // Will be set during first login
+      default: null,
     },
     role: {
       type: String,
@@ -32,7 +44,7 @@ export const userSchema = new Schema(
     },
     isFirstLogin: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     avatar: {
       type: String,
@@ -62,4 +74,5 @@ export const userSchema = new Schema(
 
 userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
+userSchema.index({ phoneNumber: 1 });
 userSchema.index({ role: 1 });

@@ -10,6 +10,7 @@ connect();
 const server = createServer(app);
 
 app.use(errorHandler);
+
 initializeDefaultData();
 
 const port = process.env.PORT || 3001;

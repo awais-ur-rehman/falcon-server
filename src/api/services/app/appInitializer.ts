@@ -87,20 +87,40 @@ export const initializeDefaultData = async (): Promise<void> => {
       console.log("Default roles created");
     }
 
-    const adminUser = await User.findOne({ email: "root@issm.ai" });
+    // Check for admin user with phone number
+    const adminUser = await User.findOne({ phoneNumber: "03001234567" });
     if (!adminUser) {
       const hashedPassword = bcrypt.hashSync("Root@123", 10);
       const defaultAdmin = new User({
         fullName: "Admin User",
         username: "root",
         email: "root@issm.ai",
+        phoneNumber: "03001234567",
         password: hashedPassword,
         role: "admin",
         isFirstLogin: false,
         onboardingCompleted: true,
+        cnic: null,
       });
       await defaultAdmin.save();
-      console.log("Default admin user created - Email: root@issm.ai, Password: Root@123");
+      console.log("Default admin user created - Phone: 03001234567, Password: Root@123");
+    }
+
+    const testUser = await User.findOne({ phoneNumber: "03009876543" });
+    if (!testUser) {
+      const newTestUser = new User({
+        fullName: "Test User",
+        username: "testuser",
+        email: "test@issm.ai",
+        phoneNumber: "03009876543",
+        role: "user",
+        isFirstLogin: true,
+        onboardingCompleted: false,
+        password: null,
+        cnic: null,
+      });
+      await newTestUser.save();
+      console.log("Test user created - Phone: 03009876543 (requires first-time setup)");
     }
   } catch (error) {
     console.error("Error initializing default data:", error);

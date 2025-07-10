@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
 import * as AuthService from "../services/auth/auth.service.js";
 
-interface CheckUserBody {
-  email: string;
+interface CheckPhoneBody {
+  phoneNumber: string;
 }
 
-interface UpdatePasswordBody {
-  email: string;
-  newPassword: string;
+interface CompleteSetupBody {
+  phoneNumber: string;
+  cnic: string;
+  password: string;
 }
 
 interface LoginBody {
-  email: string;
+  phoneNumber: string;
   password: string;
 }
 
@@ -19,6 +20,7 @@ interface SignupBody {
   fullName: string;
   username: string;
   email: string;
+  phoneNumber: string;
   password: string;
   confirmPassword: string;
 }
@@ -30,27 +32,27 @@ interface ApiResponse<T = any> {
   message?: string;
 }
 
-export const checkUser = async (
-  req: Request<{}, ApiResponse, CheckUserBody>,
+export const checkPhone = async (
+  req: Request<{}, ApiResponse, CheckPhoneBody>,
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const { phoneNumber } = req.body;
     
-    if (!email) {
+    if (!phoneNumber) {
       res.status(400).json({
         success: false,
-        error: "Email is required"
+        error: "Phone number is required"
       });
       return;
     }
 
-    const result = await AuthService.checkUserExists(email);
+    const result = await AuthService.checkPhoneExists(phoneNumber);
     
     if (!result.exists) {
       res.status(404).json({
         success: false,
-        error: "User not found"
+        error: "Phone number not found. Please contact administrator."
       });
       return;
     }
@@ -60,10 +62,10 @@ export const checkUser = async (
       data: {
         isFirstLogin: result.isFirstLogin
       },
-      message: result.isFirstLogin ? "Please set up your password" : "User found",
+      message: result.isFirstLogin ? "Please complete your setup" : "Please enter your password",
     });
   } catch (error) {
-    console.error("Check user error:", error);
+    console.error("Check phone error:", error);
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -71,29 +73,33 @@ export const checkUser = async (
   }
 };
 
-export const updatePassword = async (
-  req: Request<{}, ApiResponse, UpdatePasswordBody>,
+export const completeSetup = async (
+  req: Request<{}, ApiResponse, CompleteSetupBody>,
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, newPassword } = req.body;
+    const { phoneNumber, cnic, password } = req.body;
     
-    if (!email || !newPassword) {
+    if (!phoneNumber || !cnic || !password) {
       res.status(400).json({
         success: false,
-        error: "Email and new password are required"
+        error: "Phone number, CNIC and password are required"
       });
       return;
     }
 
-    await AuthService.updateUserPassword({ email, newPassword });
+    const result = await AuthService.completeUserSetup({ phoneNumber, cnic, password });
 
     res.json({
       success: true,
-      message: "Password updated successfully",
+      data: {
+        token: result.token,
+        user: result.user
+      },
+      message: "Setup completed successfully",
     });
   } catch (error: any) {
-    console.error("Update password error:", error);
+    console.error("Complete setup error:", error);
     res.status(error.statusCode || 500).json({
       success: false,
       error: error.message || "Internal server error"
@@ -106,17 +112,17 @@ export const login = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { phoneNumber, password } = req.body;
     
-    if (!email || !password) {
+    if (!phoneNumber || !password) {
       res.status(400).json({
         success: false,
-        error: "Email and password are required"
+        error: "Phone number and password are required"
       });
       return;
     }
 
-    const result = await AuthService.loginUser({ email, password });
+    const result = await AuthService.loginUser({ phoneNumber, password });
 
     res.json({
       success: true,

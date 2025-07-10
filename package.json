@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "nodemon ./src/index.ts",
-    "docker": "ts-node --esm ./src/index.ts",
+    "start": "nodemon --exec tsx ./src/index.ts",
+    "dev": "tsx watch ./src/index.ts",
+    "docker": "tsx ./src/index.ts",
     "swagger": "node ./src/swagger.js"
   },
   "keywords": [

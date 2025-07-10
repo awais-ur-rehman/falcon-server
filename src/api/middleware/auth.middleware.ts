@@ -1,19 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import vars from "../../config/vars.js";
-import { IUser } from "../models/interfaces/user.interface.js";
 
 interface AuthRequest extends Request {
   user?: {
     id: string;
-    email: string;
+    phoneNumber: string;
     role: string;
   };
 }
 
 interface DecodedToken {
   id: string;
-  email: string;
+  phoneNumber: string;
   role: string;
   iat: number;
   exp: number;

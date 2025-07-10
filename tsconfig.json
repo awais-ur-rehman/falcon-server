@@ -1,22 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "nodenext",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "noImplicitAny": false,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
   },
   "ts-node": {
-    "esm": true
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "src/**/*.ts",
-    "src/config/swagger.js",
-    "src/api/services/facebook/webhookService.js",
-    "src/api/services/instagram/webhookService.js"
+    "src/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

@@ -36,7 +36,7 @@ export const checkPhone = async (
 ): Promise<void> => {
   try {
     const { phoneNumber } = req.body;
-    
+
     if (!phoneNumber) {
       res.status(400).json({
         success: false,
@@ -46,7 +46,7 @@ export const checkPhone = async (
     }
 
     const result = await AuthService.checkPhoneExists(phoneNumber);
-    
+
     if (!result.exists) {
       res.status(404).json({
         success: false,
@@ -77,7 +77,7 @@ export const completeSetup = async (
 ): Promise<void> => {
   try {
     const { phoneNumber, cnic, password } = req.body;
-    
+
     if (!phoneNumber || !cnic || !password) {
       res.status(400).json({
         success: false,
@@ -112,7 +112,7 @@ export const login = async (
 ): Promise<void> => {
   try {
     const { phoneNumber, password } = req.body;
-    
+
     if (!phoneNumber || !password) {
       res.status(400).json({
         success: false,
@@ -160,7 +160,7 @@ export const signup = async (
     });
   } catch (error: any) {
     console.error("Signup error:", error);
-    
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       res.status(409).json({
@@ -169,7 +169,7 @@ export const signup = async (
       });
       return;
     }
-    
+
     res.status(error.statusCode || 500).json({
       success: false,
       error: error.message || "Internal server error"

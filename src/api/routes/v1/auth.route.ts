@@ -53,7 +53,7 @@ router.post("/complete-setup", authController.completeSetup);
  *           schema:
  *             type: object
  *             properties:
- *               phone:
+ *               phoneNumber:
  *                 type: string
  *               password:
  *                 type: string

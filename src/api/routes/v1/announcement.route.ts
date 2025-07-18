@@ -12,7 +12,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /announcements:
+ * /announcement:
  *   get:
  *     summary: Get all announcements (paginated, filterable)
  *     parameters:

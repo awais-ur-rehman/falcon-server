@@ -90,13 +90,14 @@ export const initializeDefaultData = async (): Promise<void> => {
 
     const adminUser = await User.findOne({ phoneNumber: "03001234568" });
     if (!adminUser) {
+      const hashedPassword = bcrypt.hashSync("12345678", 10);
       const defaultAdmin = new User({
         username: "bilal",
         phoneNumber: "03001234568",
-        password: null,
+        password: hashedPassword,
         role: "admin",
-        isFirstLogin: true,
-        cnic: null,
+        isFirstLogin: false,
+        cnic: "81302-9898783-3",
         houseNumber: "IH-702",
       });
       await defaultAdmin.save();

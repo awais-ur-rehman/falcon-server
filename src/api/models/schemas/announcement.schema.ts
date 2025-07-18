@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 
 export const announcementSchema = new mongoose.Schema(
     {
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        },
         title: {
             type: String,
             required: true,
@@ -15,17 +19,6 @@ export const announcementSchema = new mongoose.Schema(
         images: {
             type: [String],
             default: [],
-        },
-        createdBy: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        role: {
-            type: String,
-            enum: ["admin", "moderator"],
-            required: true,
-            default: "admin",
         },
         isActive: {
             type: Boolean,

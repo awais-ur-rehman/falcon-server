@@ -1,11 +1,11 @@
 import { Document } from "mongoose";
+import { IUser } from "../index";
 
 export interface IAnnouncement extends Document {
+  id: IUser['_id'];
   title: string;
   content: string;
   images: string[];
-  createdBy: string;
-  role: "admin" | "moderator";
   isActive: boolean;
   date: Date;
   createdAt: Date;

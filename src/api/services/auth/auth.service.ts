@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { User } from "../../models/User.js";
-import { IUser } from "../../models/interfaces/user.interface.js";
+import { User, Resident } from "../../models/User.js";
+import { IUser, IResident } from "../../models/interfaces/user.interface.js";
 import vars from "../../../config/vars.js";
 import { APIError } from "../../utils/apiError.js";
 import { Types } from "mongoose";
@@ -13,9 +13,7 @@ interface LoginCredentials {
 }
 
 interface SignupData {
-  fullName: string;
   username: string;
-  email: string;
   phoneNumber: string;
   password: string;
   confirmPassword: string;
@@ -33,11 +31,15 @@ interface TokenPayload {
   role: string;
 }
 
-// Encryption key for CNIC (you should store this in environment variables)
+interface ResidentUser {
+  user: IUser;
+  deviceID: string;
+  residentId: string;
+}
+
 const ENCRYPTION_KEY = process.env.CNIC_ENCRYPTION_KEY || 'your-32-character-secret-key-here';
 const ALGORITHM = 'aes-256-cbc';
 
-// Utility functions for CNIC encryption/decryption
 const encryptCnic = (cnic: string): string => {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipher(ALGORITHM, ENCRYPTION_KEY);
@@ -54,16 +56,12 @@ const decryptCnic = (encryptedCnic: string): string => {
   return decrypted;
 };
 
-// Phone number validation
 const validatePhoneNumber = (phoneNumber: string): boolean => {
-  // Pakistani phone number format: +92XXXXXXXXXX or 03XXXXXXXXX
   const phoneRegex = /^(\+92|0)?3[0-9]{9}$/;
   return phoneRegex.test(phoneNumber);
 };
 
-// CNIC validation
 const validateCnic = (cnic: string): boolean => {
-  // Pakistani CNIC format: XXXXX-XXXXXXX-X
   const cnicRegex = /^[0-9]{5}-[0-9]{7}-[0-9]$/;
   return cnicRegex.test(cnic);
 };
@@ -80,6 +78,25 @@ export const generateToken = (user: IUser): string => {
   });
 };
 
+const getResidentUser = async (userId: string): Promise<ResidentUser | null> => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) return null;
+
+    const resident = await Resident.findOne({ user: userId });
+    if (!resident) return null;
+
+    return {
+      user: user,
+      deviceID: resident.deviceID,
+      residentId: (resident._id as Types.ObjectId).toString()
+    };
+  } catch (error) {
+    console.error("Error fetching resident user:", error);
+    return null;
+  }
+};
+
 export const checkPhoneExists = async (phoneNumber: string): Promise<{
   exists: boolean;
   isFirstLogin: boolean;
@@ -88,7 +105,6 @@ export const checkPhoneExists = async (phoneNumber: string): Promise<{
     throw new APIError("Invalid phone number format", 400);
   }
 
-  // Normalize phone number (remove +92 and add 0 if needed)
   const normalizedPhone = phoneNumber.startsWith('+92') 
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
@@ -107,7 +123,8 @@ export const checkPhoneExists = async (phoneNumber: string): Promise<{
 
 export const completeUserSetup = async (data: CompleteSetupData): Promise<{
   token: string;
-  user: Omit<IUser, 'password' | 'cnic'>;
+  user: IUser;
+  residentUser: ResidentUser | null;
 }> => {
   const { phoneNumber, cnic, password } = data;
 
@@ -123,7 +140,6 @@ export const completeUserSetup = async (data: CompleteSetupData): Promise<{
     throw new APIError("Password must be at least 6 characters long", 400);
   }
 
-  // Normalize phone number
   const normalizedPhone = phoneNumber.startsWith('+92') 
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
@@ -137,12 +153,10 @@ export const completeUserSetup = async (data: CompleteSetupData): Promise<{
     throw new APIError("User setup already completed", 400);
   }
 
-  // Encrypt CNIC and hash password
   const encryptedCnic = encryptCnic(cnic);
   const saltRounds = 10;
   const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
-  // Update user with CNIC and password
   await User.findByIdAndUpdate(user._id, {
     cnic: encryptedCnic,
     password: hashedPassword,
@@ -150,38 +164,23 @@ export const completeUserSetup = async (data: CompleteSetupData): Promise<{
     updatedAt: new Date(),
   });
 
-  // Fetch updated user
   const updatedUser = await User.findById(user._id);
   if (!updatedUser) {
     throw new APIError("Failed to update user", 500);
   }
 
   const token = generateToken(updatedUser);
+  
+  // Get resident user information
+  const residentUser = await getResidentUser((updatedUser._id as Types.ObjectId).toString());
 
-  const userResponse = {
-    _id: updatedUser._id,
-    id: (updatedUser._id as Types.ObjectId).toString(),
-    fullName: updatedUser.fullName,
-    username: updatedUser.username,
-    email: updatedUser.email,
-    phoneNumber: updatedUser.phoneNumber,
-    role: updatedUser.role,
-    avatar: updatedUser.avatar,
-    isActive: updatedUser.isActive,
-    isFirstLogin: updatedUser.isFirstLogin,
-    onboardingCompleted: updatedUser.onboardingCompleted,
-    onboardingCompletedAt: updatedUser.onboardingCompletedAt,
-    lastLogin: updatedUser.lastLogin,
-    createdAt: updatedUser.createdAt,
-    updatedAt: updatedUser.updatedAt,
-  } as Omit<IUser, 'password' | 'cnic'>;
-
-  return { token, user: userResponse };
+  return { token, user: updatedUser, residentUser };
 };
 
 export const loginUser = async (credentials: LoginCredentials): Promise<{
   token: string;
-  user: Omit<IUser, 'password' | 'cnic'>;
+  user: IUser;
+  residentUser: ResidentUser | null;
 }> => {
   const { phoneNumber, password } = credentials;
 
@@ -189,14 +188,12 @@ export const loginUser = async (credentials: LoginCredentials): Promise<{
     throw new APIError("Invalid phone number format", 400);
   }
 
-  // Normalize phone number
   const normalizedPhone = phoneNumber.startsWith('+92') 
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 
   const user = await User.findOne({
     phoneNumber: normalizedPhone,
-    isActive: true,
   });
 
   if (!user) {
@@ -216,39 +213,28 @@ export const loginUser = async (credentials: LoginCredentials): Promise<{
     throw new APIError("Invalid phone number or password", 401);
   }
 
-  // Update last login
   await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
   
   const token = generateToken(user);
 
-  const userResponse = {
-    _id: user._id,
-    id: (user._id as Types.ObjectId).toString(),
-    fullName: user.fullName,
-    username: user.username,
-    email: user.email,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    avatar: user.avatar,
-    isActive: user.isActive,
-    isFirstLogin: user.isFirstLogin,
-    onboardingCompleted: user.onboardingCompleted,
-    onboardingCompletedAt: user.onboardingCompletedAt,
-    lastLogin: new Date(),
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  } as Omit<IUser, 'password' | 'cnic'>;
+  const updatedUser = await User.findById(user._id);
+  if (!updatedUser) {
+    throw new APIError("Failed to retrieve updated user", 500);
+  }
 
-  return { token, user: userResponse };
+  // Get resident user information
+  const residentUser = await getResidentUser((updatedUser._id as Types.ObjectId).toString());
+
+  return { token, user: updatedUser, residentUser };
 };
 
 export const signupUser = async (signupData: SignupData): Promise<{
   token: string;
   user: Omit<IUser, 'password' | 'cnic'>;
 }> => {
-  const { fullName, username, email, phoneNumber, password, confirmPassword } = signupData;
+  const { username, phoneNumber, password, confirmPassword } = signupData;
 
-  if (!fullName || !username || !email || !phoneNumber || !password) {
+  if (!username || !phoneNumber || !password) {
     throw new APIError("All fields are required", 400);
   }
 
@@ -264,28 +250,19 @@ export const signupUser = async (signupData: SignupData): Promise<{
     throw new APIError("Invalid phone number format", 400);
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    throw new APIError("Invalid email format", 400);
-  }
-
-  // Normalize phone number
   const normalizedPhone = phoneNumber.startsWith('+92') 
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 
   const existingUser = await User.findOne({
     $or: [
-      { email: email.toLowerCase() },
       { username: username.toLowerCase() },
       { phoneNumber: normalizedPhone },
     ],
   });
 
   if (existingUser) {
-    if (existingUser.email === email.toLowerCase()) {
-      throw new APIError("User with this email already exists", 409);
-    } else if (existingUser.username === username.toLowerCase()) {
+    if (existingUser.username === username.toLowerCase()) {
       throw new APIError("Username is already taken", 409);
     } else {
       throw new APIError("Phone number is already registered", 409);
@@ -296,14 +273,11 @@ export const signupUser = async (signupData: SignupData): Promise<{
   const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
   const newUser = new User({
-    fullName: fullName.trim(),
     username: username.trim().toLowerCase(),
-    email: email.toLowerCase().trim(),
     phoneNumber: normalizedPhone,
     password: hashedPassword,
     role: "user",
     isFirstLogin: false,
-    onboardingCompleted: false,
   });
 
   await newUser.save();
@@ -312,16 +286,11 @@ export const signupUser = async (signupData: SignupData): Promise<{
   const userResponse = {
     _id: newUser._id,
     id: (newUser._id as Types.ObjectId).toString(),
-    fullName: newUser.fullName,
     username: newUser.username,
-    email: newUser.email,
     phoneNumber: newUser.phoneNumber,
     role: newUser.role,
     avatar: newUser.avatar,
-    isActive: newUser.isActive,
     isFirstLogin: newUser.isFirstLogin,
-    onboardingCompleted: newUser.onboardingCompleted,
-    onboardingCompletedAt: newUser.onboardingCompletedAt,
     lastLogin: newUser.lastLogin,
     createdAt: newUser.createdAt,
     updatedAt: newUser.updatedAt,

@@ -1,20 +1,25 @@
 import mongoose, { Schema } from "mongoose";
 
+export const ResidentSchema = new Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    deviceID: {
+      type: String,
+      required: true,
+    }
+  },
+  {
+    timestamps: true,
+  }
+);
+
 export const userSchema = new Schema(
   {
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-    },
-    email: {
       type: String,
       required: true,
       unique: true,
@@ -29,12 +34,12 @@ export const userSchema = new Schema(
     },
     cnic: {
       type: String,
-      required: false, // Will be set during first login
+      required: false,
       default: null,
     },
     password: {
       type: String,
-      required: false, // Will be set during first login
+      required: false,
       default: null,
     },
     role: {
@@ -46,23 +51,15 @@ export const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    houseNumber: {
+      type: String,
+      required: true,
+    },
     avatar: {
       type: String,
       default: null,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
     lastLogin: {
-      type: Date,
-      default: null,
-    },
-    onboardingCompleted: {
-      type: Boolean,
-      default: false,
-    },
-    onboardingCompletedAt: {
       type: Date,
       default: null,
     },
@@ -72,7 +69,9 @@ export const userSchema = new Schema(
   }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
 userSchema.index({ phoneNumber: 1 });
 userSchema.index({ role: 1 });
+
+ResidentSchema.index({ user: 1 });
+ResidentSchema.index({ deviceID: 1 });

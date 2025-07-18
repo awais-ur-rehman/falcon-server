@@ -17,9 +17,7 @@ interface LoginBody {
 }
 
 interface SignupBody {
-  fullName: string;
   username: string;
-  email: string;
   phoneNumber: string;
   password: string;
   confirmPassword: string;
@@ -94,7 +92,8 @@ export const completeSetup = async (
       success: true,
       data: {
         token: result.token,
-        user: result.user
+        user: result.user,
+        residentUser: result.residentUser
       },
       message: "Setup completed successfully",
     });
@@ -128,7 +127,8 @@ export const login = async (
       success: true,
       data: {
         token: result.token,
-        user: result.user
+        user: result.user,
+        residentUser: result.residentUser
       },
       message: "Login successful",
     });

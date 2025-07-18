@@ -1,17 +1,22 @@
 import { Document } from "mongoose";
 
 export interface IUser extends Document {
-  fullName: string;
   username: string;
-  email: string;
+  phoneNumber: string;
+  cnic: string;
   password: string;
   role: "admin" | "user" | "moderator";
   isFirstLogin: boolean;
   avatar?: string;
-  isActive: boolean;
   lastLogin?: Date;
-  onboardingCompleted: boolean;
-  onboardingCompletedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  houseNumber: String;
+}
+
+export interface IResident extends Document {
+  user: IUser['_id'];
+  deviceID: string;
   createdAt: Date;
   updatedAt: Date;
 }

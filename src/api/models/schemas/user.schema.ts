@@ -10,6 +10,10 @@ export const ResidentSchema = new Schema(
     deviceID: {
       type: String,
       required: true,
+    },
+    houseNumber: {
+      type: String,
+      required: true,
     }
   },
   {
@@ -55,22 +59,6 @@ export const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    houseNumber: {
-      type: String,
-      required: true,
-    },
-    avatar: {
-      type: String,
-      default: null,
-    },
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
-    houseNumber: {
-      type: String,
-      required: true,
-    },
     avatar: {
       type: String,
       default: null,
@@ -91,3 +79,4 @@ userSchema.index({ role: 1 });
 
 ResidentSchema.index({ user: 1 });
 ResidentSchema.index({ deviceID: 1 });
+ResidentSchema.index({ houseNumber: 1 });

@@ -95,27 +95,17 @@ export const initializeDefaultData = async (): Promise<void> => {
         username: "bilal",
         phoneNumber: "03001234568",
         password: hashedPassword,
-        role: "admin", // This will be the role ID from the Role document
+        role: "admin",
         isFirstLogin: false,
         isActive: true,
         cnic: "81302-9898783-3",
-        houseNumber: "IH-702",
       });
       await defaultAdmin.save();
-      const defaultAdmin = new User({
-        username: "bilal",
-        phoneNumber: "03001234568",
-        password: null,
-        role: "admin",
-        isFirstLogin: true,
-        cnic: null,
-        houseNumber: "IH-702",
-      });
-      await defaultAdmin.save();
-  
+
       const adminResident = new Resident({
         user: defaultAdmin._id,
         deviceID: "861234567890123",
+        houseNumber: "IH-702",
       });
       await adminResident.save();
       console.log("Default admin user created - Phone: 03001234568, IMEI: 861234567890123");
@@ -131,13 +121,13 @@ export const initializeDefaultData = async (): Promise<void> => {
         isActive: true,
         password: "12345678",
         cnic: "81302-9898783-3",
-        houseNumber: "A-101",
       });
       await newTestUser.save();
 
       const testResident = new Resident({
         user: newTestUser._id,
         deviceID: "869876543210987",
+        houseNumber: "A-101",
       });
       await testResident.save();
 
@@ -154,53 +144,16 @@ export const initializeDefaultData = async (): Promise<void> => {
         isActive: true,
         password: null,
         cnic: null,
-        houseNumber: "B-205",
       });
       await newTestUser2.save();
 
       const testResident2 = new Resident({
         user: newTestUser2._id,
         deviceID: "861111111111111",
-      });
-      await testResident2.save();
-
-      console.log("Second test user created - Phone: 03001111111, IMEI: 861111111111111 (requires first-time setup)");
-    }
-
-        password: null,
-        cnic: null,
-        houseNumber: "A-101",
-      });
-      await newTestUser.save();
-      
-      const testResident = new Resident({
-        user: newTestUser._id,
-        deviceID: "869876543210987",
-      });
-      await testResident.save();
-      
-      console.log("Test user created - Phone: 03009876543, IMEI: 869876543210987 (requires first-time setup)");
-    }
-
-    const testUser2 = await User.findOne({ phoneNumber: "03001111111" });
-    if (!testUser2) {
-      const newTestUser2 = new User({
-        username: "resident2",
-        phoneNumber: "03001111111",
-        role: "user",
-        isFirstLogin: true,
-        password: null,
-        cnic: null,
         houseNumber: "B-205",
       });
-      await newTestUser2.save();
-      
-      const testResident2 = new Resident({
-        user: newTestUser2._id,
-        deviceID: "861111111111111",
-      });
       await testResident2.save();
-      
+
       console.log("Second test user created - Phone: 03001111111, IMEI: 861111111111111 (requires first-time setup)");
     }
 

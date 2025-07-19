@@ -105,7 +105,7 @@ export const checkPhoneExists = async (phoneNumber: string): Promise<{
     throw new APIError("Invalid phone number format", 400);
   }
 
-  const normalizedPhone = phoneNumber.startsWith('+92') 
+  const normalizedPhone = phoneNumber.startsWith('+92')
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 
@@ -140,7 +140,7 @@ export const completeUserSetup = async (data: CompleteSetupData): Promise<{
     throw new APIError("Password must be at least 6 characters long", 400);
   }
 
-  const normalizedPhone = phoneNumber.startsWith('+92') 
+  const normalizedPhone = phoneNumber.startsWith('+92')
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 
@@ -170,9 +170,6 @@ export const completeUserSetup = async (data: CompleteSetupData): Promise<{
   }
 
   const token = generateToken(updatedUser);
-  
-  // Get resident user information
-  const residentUser = await getResidentUser((updatedUser._id as Types.ObjectId).toString());
 
   // Get resident user information
   const residentUser = await getResidentUser((updatedUser._id as Types.ObjectId).toString());
@@ -193,7 +190,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<{
   }
 
 
-  const normalizedPhone = phoneNumber.startsWith('+92') 
+  const normalizedPhone = phoneNumber.startsWith('+92')
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 
@@ -256,7 +253,7 @@ export const signupUser = async (signupData: SignupData): Promise<{
   }
 
 
-  const normalizedPhone = phoneNumber.startsWith('+92') 
+  const normalizedPhone = phoneNumber.startsWith('+92')
     ? '0' + phoneNumber.slice(3)
     : phoneNumber;
 

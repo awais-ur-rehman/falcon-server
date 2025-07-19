@@ -67,6 +67,18 @@ export const userSchema = new Schema(
       type: Date,
       default: null,
     },
+    houseNumber: {
+      type: String,
+      required: true,
+    },
+    avatar: {
+      type: String,
+      default: null,
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

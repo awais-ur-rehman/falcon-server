@@ -2,11 +2,13 @@ import { Visitor } from "../../models/Visitor.js";
 import { User } from "../../models/User.js";
 import { IVisitor } from "../../models/interfaces/visitor.interface.js";
 import { APIError } from "../../utils/apiError.js";
+import crypto from 'crypto';
 
 interface GetVisitorsQuery {
   userId?: string;
   visitorType?: string;
   vehicleType?: string;
+  entryCode?: string;
   page?: string;
   limit?: string;
   sortBy?: string;
@@ -26,6 +28,33 @@ interface PaginatedVisitors {
   };
 }
 
+const generateUniqueEntryCode = async (): Promise<string> => {
+  const timestamp = process.hrtime.bigint();
+  const randomBytes = crypto.randomBytes(4);
+  
+  const combined = Number(timestamp % 10000n) + randomBytes.readUInt32BE(0);
+  let entryCode = (combined % 10000).toString().padStart(4, '0');
+  
+  if (entryCode === '0000') {
+    entryCode = '0001';
+  }
+  
+  let attempts = 0;
+  while (attempts < 10) {
+    const existing = await Visitor.findOne({ entryCode });
+    if (!existing) {
+      return entryCode;
+    }
+    
+    const nextCode = ((parseInt(entryCode) + 1) % 10000).toString().padStart(4, '0');
+    entryCode = nextCode === '0000' ? '0001' : nextCode;
+    attempts++;
+  }
+  
+  const fallbackCode = (Date.now() % 9999 + 1).toString().padStart(4, '0');
+  return fallbackCode;
+};
+
 export const createVisitor = async (
   visitorData: Partial<IVisitor>,
   requestingUserId: string
@@ -42,9 +71,12 @@ export const createVisitor = async (
     visitorData.id = requestingUserId;
   }
 
+  const entryCode = await generateUniqueEntryCode();
+
   const visitor = new Visitor({
     ...visitorData,
-    userId: visitorData.id
+    userId: visitorData.id,
+    entryCode
   });
 
   const savedVisitor = await visitor.save();
@@ -61,6 +93,7 @@ export const getVisitors = async (
     userId,
     visitorType,
     vehicleType,
+    entryCode,
     page = "1",
     limit = "30",
     sortBy = "createdAt",
@@ -87,6 +120,7 @@ export const getVisitors = async (
 
   if (visitorType) filters.visitorType = visitorType;
   if (vehicleType) filters.vehicleType = vehicleType;
+  if (entryCode) filters.entryCode = entryCode;
   
   if (startDate || endDate) {
     filters.date = {};

@@ -35,6 +35,13 @@ router.post("/check-phone", authController.checkPhone);
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *               cnic:
+ *                 type: string
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Setup completed
@@ -92,5 +99,32 @@ router.post("/signup", authController.signup);
  *         description: Logout successful
  */
 router.post("/logout", authenticateToken, authController.logout);
+
+/**
+ * @swagger
+ * /auth/set-password:
+ *   post:
+ *     summary: Set password for a user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password set successfully
+ *       400:
+ *         description: Phone number and password are required
+ *       404:
+ *         description: User not found
+ */
+import { setPasswordController } from "../../controllers/auth.controller.js";
+router.post("/set-password", setPasswordController);
 
 export default router;

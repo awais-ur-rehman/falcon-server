@@ -95,8 +95,9 @@ export const initializeDefaultData = async (): Promise<void> => {
         username: "bilal",
         phoneNumber: "03001234568",
         password: hashedPassword,
-        role: "admin",
+        role: "admin", // This will be the role ID from the Role document
         isFirstLogin: false,
+        isActive: true,
         cnic: "81302-9898783-3",
         houseNumber: "IH-702",
       });
@@ -118,6 +119,7 @@ export const initializeDefaultData = async (): Promise<void> => {
         phoneNumber: "03009876543",
         role: "user",
         isFirstLogin: true,
+        isActive: true,
         password: "12345678",
         cnic: "81302-9898783-3",
         houseNumber: "A-101",
@@ -140,6 +142,7 @@ export const initializeDefaultData = async (): Promise<void> => {
         phoneNumber: "03001111111",
         role: "user",
         isFirstLogin: true,
+        isActive: true,
         password: null,
         cnic: null,
         houseNumber: "B-205",

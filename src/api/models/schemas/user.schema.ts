@@ -51,6 +51,10 @@ export const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     houseNumber: {
       type: String,
       required: true,

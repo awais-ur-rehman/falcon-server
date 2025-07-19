@@ -14,6 +14,12 @@ interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export const getRole = async (
@@ -22,7 +28,7 @@ export const getRole = async (
 ): Promise<void> => {
   try {
     const { roleId } = req.params;
-    
+
     if (!roleId) {
       res.status(400).json({
         success: false,
@@ -59,11 +65,28 @@ export const getAllRoles = async (
       return;
     }
 
-    const roles = await RoleService.getAllRoles();
+    if (req.user.role !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: "Access denied. Admin role required."
+      });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    const result = await RoleService.getAllRolesPaginated(page, limit);
 
     res.json({
       success: true,
-      data: { roles }
+      data: result.roles,
+      pagination: {
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages
+      }
     });
   } catch (error: any) {
     console.error("Get roles error:", error);

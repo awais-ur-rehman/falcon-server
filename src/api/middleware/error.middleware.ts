@@ -2,57 +2,65 @@ import { Request, Response, NextFunction } from "express";
 import { APIError } from "../utils/apiError.js";
 
 export const errorHandler = (
-  error: any,
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  console.error("Global error handler:", error);
+  let error = { ...err };
+  error.message = err.message;
 
-  if (error.code === "LIMIT_FILE_SIZE") {
-    res.status(400).json({
-      success: false,
-      error: "File too large. Maximum size is 50MB.",
-    });
-    return;
+  // Log error for debugging
+  console.error("Error:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    body: req.body,
+    query: req.query,
+    params: req.params,
+  });
+
+  // Mongoose bad ObjectId
+  if (err.name === "CastError") {
+    const message = "Resource not found";
+    error = new APIError(message, 404);
   }
 
-  if (error.message && error.message.includes("Invalid file type")) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
-    return;
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern)[0];
+    const message = `${field} already exists`;
+    error = new APIError(message, 409);
   }
 
-  if (error.message && error.message.includes("file format not allowed")) {
-    res.status(400).json({
-      success: false,
-      error: "File format not supported. Please upload ZIP, PDF, DOC, DOCX, or image files only.",
-    });
-    return;
+  // Mongoose validation error
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors).map((val: any) => val.message).join(", ");
+    error = new APIError(message, 400);
   }
 
-  if (error instanceof APIError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: error.message,
-      errorCode: error.errorCode,
-    });
-    return;
+  // JWT errors
+  if (err.name === "JsonWebTokenError") {
+    const message = "Invalid token";
+    error = new APIError(message, 401);
   }
 
-  if (error.http_code) {
-    res.status(error.http_code).json({
-      success: false,
-      error: error.message || "Upload failed",
-    });
-    return;
+  if (err.name === "TokenExpiredError") {
+    const message = "Token expired";
+    error = new APIError(message, 401);
   }
 
-  res.status(500).json({
+  // Default error response
+  const statusCode = error.statusCode || 500;
+  const message = error.message || "Internal Server Error";
+
+  res.status(statusCode).json({
     success: false,
-    error: "Something went wrong!",
-    details: process.env.NODE_ENV === "development" ? error.message : undefined,
+    error: message,
+    ...(process.env.NODE_ENV === "development" && {
+      stack: err.stack,
+      details: err,
+    }),
   });
 };

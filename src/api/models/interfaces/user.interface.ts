@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   role: "admin" | "user" | "moderator";
   isFirstLogin: boolean;
+  isActive: boolean;
   avatar?: string;
   lastLogin?: Date;
   createdAt: Date;

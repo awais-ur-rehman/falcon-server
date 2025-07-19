@@ -8,6 +8,7 @@ export interface IVisitor extends Document {
   vehicleType: "Car" | "Bike" | "Pickup" | "Rickshaw";
   vehcileNumber: string;
   date: Date;
+  entryCode: string;
   createdAt: Date;
   updatedAt: Date;
 }

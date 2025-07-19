@@ -28,6 +28,12 @@ export const visitorSchema = new mongoose.Schema(
         date: {
             type: Date,
             required: true,
+        },
+        entryCode: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
         }
     },
     {

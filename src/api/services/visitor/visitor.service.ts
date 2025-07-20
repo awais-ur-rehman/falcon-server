@@ -6,6 +6,7 @@ import crypto from 'crypto';
 
 interface GetVisitorsQuery {
   userId?: string;
+  visitorName?: string;
   visitorType?: string;
   vehicleType?: string;
   entryCode?: string;
@@ -91,6 +92,7 @@ export const getVisitors = async (
 ): Promise<PaginatedVisitors> => {
   const {
     userId,
+    visitorName,
     visitorType,
     vehicleType,
     entryCode,
@@ -118,6 +120,7 @@ export const getVisitors = async (
     filters.userId = userId;
   }
 
+  if (visitorName) filters.visitorName = new RegExp(visitorName, 'i');
   if (visitorType) filters.visitorType = visitorType;
   if (vehicleType) filters.vehicleType = vehicleType;
   if (entryCode) filters.entryCode = entryCode;

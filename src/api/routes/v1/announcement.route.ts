@@ -54,7 +54,7 @@ router.get("/", getAnnouncementsController);
 
 /**
  * @swagger
- * /announcements:
+ * /announcement:
  *   post:
  *     summary: Create an announcement
  *     requestBody:

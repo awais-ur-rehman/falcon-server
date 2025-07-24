@@ -30,7 +30,7 @@ export async function getAnnouncements({
 
     const [announcements, total] = await Promise.all([
         Announcement.find(filter)
-            .populate('userId', 'name')
+            .populate('userId', 'username')
             .sort({ date: -1 })
             .skip(skip)
             .limit(limit),

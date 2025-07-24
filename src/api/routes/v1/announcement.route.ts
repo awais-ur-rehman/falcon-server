@@ -87,7 +87,7 @@ router.post("/", createAnnouncementController);
 
 /**
  * @swagger
- * /announcements/{id}:
+ * /announcement/{id}:
  *   put:
  *     summary: Update announcement title, content, or images
  *     parameters:
@@ -122,7 +122,7 @@ router.put("/:id", updateAnnouncementController);
 
 /**
  * @swagger
- * /announcements/{id}/status:
+ * /announcement/{id}/status:
  *   put:
  *     summary: Update announcement status (active/inactive)
  *     parameters:
@@ -151,7 +151,7 @@ router.put("/:id/status", updateAnnouncementStatusController);
 
 /**
  * @swagger
- * /announcements/{id}:
+ * /announcement/{id}:
  *   delete:
  *     summary: Delete an announcement
  *     parameters:

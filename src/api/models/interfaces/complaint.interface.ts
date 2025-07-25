@@ -6,7 +6,7 @@ export interface IComplaint extends Document {
   title: string;
   description: string;
   images: string[];
-  status: boolean;
+  status: "Pending" | "In Progress" | "Resolved" | "Rejected";
   date: Date;
   createdAt: Date;
   updatedAt: Date;

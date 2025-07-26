@@ -3,6 +3,7 @@ import { User } from "../../models/User.js";
 import { Resident } from "../../models/index.js";
 import { Module } from "../../models/Module.js";
 import { Role } from "../../models/Role.js";
+import { Announcement } from "../../models/Announcement.js";
 
 export const initializeDefaultData = async (): Promise<void> => {
   try {
@@ -155,6 +156,42 @@ export const initializeDefaultData = async (): Promise<void> => {
       await testResident2.save();
 
       console.log("Second test user created - Phone: 03001111111, IMEI: 861111111111111 (requires first-time setup)");
+    }
+
+    // Add dummy announcements if none exist
+    const announcementCount = await Announcement.countDocuments();
+    if (announcementCount === 0) {
+      // Use admin user as creator if available
+      const adminUser = await User.findOne({ phoneNumber: "03001234568" });
+      const adminId = adminUser ? adminUser._id : undefined;
+      const dummyAnnouncements = [
+        {
+          userId: adminId,
+          title: "Water Supply Notice",
+          content: "Water supply will be off from 2-4pm tomorrow due to maintenance.",
+          images: [],
+          isActive: true,
+          date: new Date(),
+        },
+        {
+          userId: adminId,
+          title: "Community Meeting",
+          content: "Monthly community meeting will be held on 10th June at 5pm in the clubhouse.",
+          images: [],
+          isActive: true,
+          date: new Date(),
+        },
+        {
+          userId: adminId,
+          title: "Security Alert",
+          content: "Please ensure your vehicles are locked. Increased security patrols this week.",
+          images: [],
+          isActive: false,
+          date: new Date(),
+        }
+      ];
+      await Announcement.insertMany(dummyAnnouncements);
+      console.log("Dummy announcements created");
     }
 
   } catch (error) {

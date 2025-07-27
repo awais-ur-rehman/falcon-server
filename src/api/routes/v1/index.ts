@@ -7,6 +7,7 @@ import announcementRoute from "./announcement.route.js";
 import visitorRoute from "./visitor.route.js";
 import moduleRoutes from "./module.route.js";
 import permissionRoutes from "./permission.route.js";
+import complaintRoutes  from "./complaints.route.js";
 
 const router: Router = express.Router();
 router.use(cookieParser());
@@ -69,5 +70,6 @@ router.use("/announcement", announcementRoute);
 router.use("/visitors", visitorRoute);
 router.use("/modules", moduleRoutes);
 router.use("/permissions", permissionRoutes);
+router.use("/complaints", complaintRoutes);
 
 export default router;

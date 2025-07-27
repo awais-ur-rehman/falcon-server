@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { User, Resident } from "../../models/User.js";
-import { IUser, IResident } from "../../models/interfaces/user.interface.js";
+import { IUser } from "../../models/interfaces/user.interface.js";
 import vars from "../../../config/vars.js";
 import { APIError } from "../../utils/apiError.js";
 import { Types } from "mongoose";
@@ -67,10 +67,22 @@ const validateCnic = (cnic: string): boolean => {
 };
 
 export const generateToken = (user: IUser): string => {
+  // Handle role - it could be a string or ObjectId
+  let roleString = 'user'; // default fallback
+
+  if (user.role) {
+    if (typeof user.role === 'string') {
+      roleString = user.role;
+    } else {
+      // If it's an ObjectId, we'll use a placeholder and handle it in the permission system
+      roleString = 'employee';
+    }
+  }
+
   const payload: TokenPayload = {
     id: (user._id as Types.ObjectId).toString(),
     phoneNumber: user.phoneNumber,
-    role: user.role,
+    role: roleString,
   };
 
   return jwt.sign(payload, vars.jwtSecret, {

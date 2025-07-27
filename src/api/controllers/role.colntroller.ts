@@ -22,6 +22,42 @@ interface ApiResponse<T = any> {
   };
 }
 
+// Helper function to check admin permissions
+const checkAdminPermission = async (req: AuthRequest, res: Response<ApiResponse>): Promise<boolean> => {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      error: "Authentication required"
+    });
+    return false;
+  }
+
+  // Check if user has admin role - handle both JWT role and database role
+  if (req.user.role !== "admin" && req.user.role !== "employee") {
+    res.status(403).json({
+      success: false,
+      error: "Access denied. Admin role required."
+    });
+    return false;
+  }
+
+  // For employees, we need to check their actual role in the database
+  if (req.user.role === "employee") {
+    const { Employee } = await import("../models/User.js");
+    const user = await Employee.findById(req.user.id).populate('role', 'name');
+
+    if (!user || !user.role || (typeof user.role === 'object' && user.role.name !== 'Admin')) {
+      res.status(403).json({
+        success: false,
+        error: "Insufficient permissions"
+      });
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const getRole = async (
   req: Request<{ roleId: string }>,
   res: Response<ApiResponse>
@@ -57,21 +93,8 @@ export const getAllRoles = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: "Authentication required"
-      });
-      return;
-    }
-
-    if (req.user.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Access denied. Admin role required."
-      });
-      return;
-    }
+    const hasPermission = await checkAdminPermission(req, res);
+    if (!hasPermission) return;
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -102,21 +125,8 @@ export const createRole = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: "Authentication required"
-      });
-      return;
-    }
-
-    if (req.user.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Access denied. Admin role required."
-      });
-      return;
-    }
+    const hasPermission = await checkAdminPermission(req, res);
+    if (!hasPermission) return;
 
     const roleData = req.body;
     const role = await RoleService.createRole(roleData);
@@ -140,21 +150,8 @@ export const updateRole = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: "Authentication required"
-      });
-      return;
-    }
-
-    if (req.user.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Access denied. Admin role required."
-      });
-      return;
-    }
+    const hasPermission = await checkAdminPermission(req, res);
+    if (!hasPermission) return;
 
     const { roleId } = req.params;
     const updateData = req.body;
@@ -180,21 +177,8 @@ export const deleteRole = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: "Authentication required"
-      });
-      return;
-    }
-
-    if (req.user.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Access denied. Admin role required."
-      });
-      return;
-    }
+    const hasPermission = await checkAdminPermission(req, res);
+    if (!hasPermission) return;
 
     const { roleId } = req.params;
     await RoleService.deleteRole(roleId);

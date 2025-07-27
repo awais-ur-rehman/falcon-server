@@ -4,7 +4,7 @@ export const complaintSchema = new mongoose.Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Resident",
         },
         title: {
             type: String,

@@ -57,6 +57,8 @@ router.get("/", getAnnouncementsController);
  * /announcement:
  *   post:
  *     summary: Create an announcement
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -64,8 +66,6 @@ router.get("/", getAnnouncementsController);
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: string
  *               title:
  *                 type: string
  *               content:
@@ -82,8 +82,10 @@ router.get("/", getAnnouncementsController);
  *     responses:
  *       201:
  *         description: Announcement created
+ *       401:
+ *         description: Unauthorized
  */
-router.post("/", createAnnouncementController);
+router.post("/", authenticateToken, createAnnouncementController);
 
 /**
  * @swagger
@@ -118,13 +120,15 @@ router.post("/", createAnnouncementController);
  *       404:
  *         description: Announcement not found
  */
-router.put("/:id", updateAnnouncementController);
+router.put("/:id", authenticateToken, updateAnnouncementController);
 
 /**
  * @swagger
  * /announcement/{id}/status:
  *   put:
  *     summary: Update announcement status (active/inactive)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -144,16 +148,20 @@ router.put("/:id", updateAnnouncementController);
  *     responses:
  *       200:
  *         description: Announcement status updated
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Announcement not found
  */
-router.put("/:id/status", updateAnnouncementStatusController);
+router.put("/:id/status", authenticateToken, updateAnnouncementStatusController);
 
 /**
  * @swagger
  * /announcement/{id}:
  *   delete:
  *     summary: Delete an announcement
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -164,9 +172,11 @@ router.put("/:id/status", updateAnnouncementStatusController);
  *     responses:
  *       200:
  *         description: Announcement deleted
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Announcement not found
  */
-router.delete("/:id", deleteAnnouncementController);
+router.delete("/:id", authenticateToken, deleteAnnouncementController);
 
 export default router;

@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
-import { IResident, IUser } from "./interfaces/user.interface.js";
-import { ResidentSchema, userSchema } from "./schemas/user.schema.js";
+import { IEmployee } from "./interfaces/employee.interface.js";
+import { IResident } from "./interfaces/resident.interface.js";
+import { employeeSchema, residentSchema } from "./schemas/user.schema.js";
 
-export const User = mongoose.model<IUser>("User", userSchema);
-export const Resident = mongoose.model<IResident>("Resident", ResidentSchema);
+// Check if model already exists to prevent overwriting
+export const Employee = mongoose.models.Employee || mongoose.model<IEmployee>("Employee", employeeSchema);
+export const Resident = mongoose.models.Resident || mongoose.model<IResident>("Resident", residentSchema);
+
+// Legacy export for backward compatibility
+export const User = Employee;

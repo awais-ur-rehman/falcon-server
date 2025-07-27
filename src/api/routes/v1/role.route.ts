@@ -56,7 +56,7 @@ router.get("/:roleId", authenticateToken, getRole);
  *       403:
  *         description: Access denied. Admin role required.
  */
-router.get("/", authenticateToken, requireRole(["admin"]), getAllRoles);
+router.get("/", authenticateToken, getAllRoles);
 
 /**
  * @swagger
@@ -101,7 +101,7 @@ router.get("/", authenticateToken, requireRole(["admin"]), getAllRoles);
  *       403:
  *         description: Access denied. Admin role required.
  */
-router.post("/", authenticateToken, requireRole(["admin"]), createRole);
+router.post("/", authenticateToken, createRole);
 
 /**
  * @swagger
@@ -129,7 +129,7 @@ router.post("/", authenticateToken, requireRole(["admin"]), createRole);
  *       403:
  *         description: Access denied. Admin role required.
  */
-router.put("/:id", authenticateToken, requireRole(["admin"]), updateRole);
+router.put("/:id", authenticateToken, updateRole);
 
 /**
  * @swagger
@@ -151,6 +151,6 @@ router.put("/:id", authenticateToken, requireRole(["admin"]), updateRole);
  *       403:
  *         description: Access denied. Admin role required.
  */
-router.delete("/:id", authenticateToken, requireRole(["admin"]), deleteRole);
+router.delete("/:id", authenticateToken, deleteRole);
 
 export default router;

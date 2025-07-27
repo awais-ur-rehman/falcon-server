@@ -24,12 +24,23 @@ export const getAnnouncementsController = async (
 };
 
 export const createAnnouncementController = async (
-    req: Request,
+    req: Request & { user?: { id: string; phoneNumber: string; role: string } },
     res: Response,
     next: NextFunction
 ) => {
     try {
-        const { userId, title, content, images, isActive, date } = req.body;
+        const { title, content, images, isActive, date } = req.body;
+
+        // Use the authenticated user's ID
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                error: "User authentication required"
+            });
+        }
+
         const announcement = new Announcement({
             userId,
             title,
@@ -39,7 +50,10 @@ export const createAnnouncementController = async (
             date,
         });
         await announcement.save();
-        res.status(201).json(announcement);
+        res.status(201).json({
+            success: true,
+            data: announcement
+        });
     } catch (error) {
         next(error);
     }

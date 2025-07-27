@@ -2,9 +2,9 @@ import mongoose, { Schema } from "mongoose";
 
 export const visitorSchema = new mongoose.Schema(
     {
-        userId: {
+        residentId: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Resident",
         },
         visitorName: {
             type: String,
@@ -37,6 +37,6 @@ export const visitorSchema = new mongoose.Schema(
         }
     },
     {
-        timestamps: true, 
+        timestamps: true,
     }
 )

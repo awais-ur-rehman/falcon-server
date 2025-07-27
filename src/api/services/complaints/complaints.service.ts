@@ -1,5 +1,5 @@
 import { Complaint } from "../../models/Complaint.js";
-import { User } from "../../models/User.js";
+import { Employee, Resident } from "../../models/User.js";
 import { IComplaint } from "../../models/interfaces/complaint.interface.js";
 import { APIError } from "../../utils/apiError.js";
 
@@ -33,7 +33,7 @@ export const createComplaint = async (
   if (!complaintData.title) {
     throw new APIError("Title is required", 400);
   }
-  
+
   if (!complaintData.description) {
     throw new APIError("Description is required", 400);
   }
@@ -42,15 +42,21 @@ export const createComplaint = async (
     throw new APIError("Date is required", 400);
   }
 
+  // Verify the requesting user is a resident
+  const resident = await Resident.findById(requestingUserId);
+  if (!resident) {
+    throw new APIError("Only residents can create complaints", 403);
+  }
+
   const complaint = new Complaint({
     ...complaintData,
     userId: requestingUserId,
-    status: "Pending" 
+    status: "Pending"
   });
 
   const savedComplaint = await complaint.save();
-  await savedComplaint.populate('userId', 'name email');
-  
+  await savedComplaint.populate('userId', 'username phoneNumber houseNumber');
+
   return savedComplaint;
 };
 
@@ -60,7 +66,7 @@ export const updateComplaint = async (
   requestingUserId: string
 ): Promise<IComplaint> => {
   const complaint = await Complaint.findById(complaintId);
-  
+
   if (!complaint) {
     throw new APIError("Complaint not found", 404);
   }
@@ -85,7 +91,7 @@ export const updateComplaint = async (
     complaintId,
     updateData,
     { new: true, runValidators: true }
-  ).populate('userId', 'name email');
+  ).populate('userId', 'username phoneNumber houseNumber');
 
   if (!updatedComplaint) {
     throw new APIError("Failed to update complaint", 500);
@@ -99,7 +105,7 @@ export const deleteComplaint = async (
   requestingUserId: string
 ): Promise<void> => {
   const complaint = await Complaint.findById(complaintId);
-  
+
   if (!complaint) {
     throw new APIError("Complaint not found", 404);
   }
@@ -116,8 +122,16 @@ export const updateComplaintStatus = async (
   newStatus: string,
   requestingUserId: string
 ): Promise<IComplaint> => {
-  const currentUser = await User.findById(requestingUserId);
-  if (!currentUser || currentUser.role !== "admin") {
+  const currentUser = await Employee.findById(requestingUserId).populate('role', 'name');
+  if (!currentUser) {
+    throw new APIError("User not found", 404);
+  }
+
+  // Check if user has admin role
+  const isAdmin = currentUser.role &&
+    (typeof currentUser.role === 'string' ? currentUser.role === 'admin' : currentUser.role.name === 'Admin');
+
+  if (!isAdmin) {
     throw new APIError("Access denied. Only admins can update complaint status.", 403);
   }
 
@@ -130,7 +144,7 @@ export const updateComplaintStatus = async (
     complaintId,
     { status: newStatus },
     { new: true, runValidators: true }
-  ).populate('userId', 'name email');
+  ).populate('userId', 'username phoneNumber houseNumber');
 
   if (!updatedComplaint) {
     throw new APIError("Complaint not found", 404);
@@ -155,25 +169,32 @@ export const getComplaints = async (
     endDate
   } = query;
 
-  const currentUser = await User.findById(requestingUserId);
-  if (!currentUser) {
+  // Check if the requesting user is an employee (admin) or resident
+  const currentEmployee = await Employee.findById(requestingUserId);
+  const currentResident = await Resident.findById(requestingUserId);
+
+  if (!currentEmployee && !currentResident) {
     throw new APIError("User not found", 404);
   }
 
   const filters: any = {};
-  
-  if (currentUser.role !== "admin" && !userId) {
-    filters.userId = requestingUserId;
-  } else if (userId) {
-    if (currentUser.role !== "admin" && userId !== requestingUserId) {
+
+  if (currentEmployee) {
+    // Employee (admin) can see all complaints or filter by specific user
+    if (userId) {
+      filters.userId = userId;
+    }
+  } else if (currentResident) {
+    // Resident can only see their own complaints
+    if (userId && userId !== requestingUserId) {
       throw new APIError("Access denied. You can only access your own records.", 403);
     }
-    filters.userId = userId;
+    filters.userId = requestingUserId;
   }
 
   if (status) filters.status = status;
   if (title) filters.title = new RegExp(title, 'i');
-  
+
   if (startDate || endDate) {
     filters.date = {};
     if (startDate) filters.date.$gte = new Date(startDate);
@@ -183,22 +204,22 @@ export const getComplaints = async (
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
   const skip = (pageNum - 1) * limitNum;
-  
+
   const sort: any = {};
   sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-  
+
   const totalRecords = await Complaint.countDocuments(filters);
   const complaints = await Complaint.find(filters)
-    .populate('userId', 'name email')
+    .populate('userId', 'username phoneNumber houseNumber')
     .sort(sort)
     .skip(skip)
     .limit(limitNum)
     .lean();
-  
+
   const totalPages = Math.ceil(totalRecords / limitNum);
   const hasNext = pageNum < totalPages;
   const hasPrev = pageNum > 1;
-  
+
   return {
     complaints: complaints as IComplaint[],
     pagination: {

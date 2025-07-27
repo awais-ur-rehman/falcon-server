@@ -4,7 +4,7 @@ export const announcementSchema = new mongoose.Schema(
     {
         userId: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Employee",
         },
         title: {
             type: String,
@@ -30,6 +30,6 @@ export const announcementSchema = new mongoose.Schema(
         }
     },
     {
-        timestamps: true, 
+        timestamps: true,
     }
 )

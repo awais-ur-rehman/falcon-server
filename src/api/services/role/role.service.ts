@@ -44,12 +44,6 @@ export const getAllRolesPaginated = async (page: number, limit: number): Promise
 };
 
 export const createRole = async (roleData: Partial<IRole>): Promise<IRole> => {
-  const existingRole = await Role.findOne({ _id: roleData._id });
-
-  if (existingRole) {
-    throw new APIError("Role with this ID already exists", 409);
-  }
-
   const newRole = new Role(roleData);
   await newRole.save();
   return newRole;

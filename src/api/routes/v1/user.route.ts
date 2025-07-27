@@ -2,6 +2,7 @@ import express from "express";
 import { authenticateToken, requireRole } from "../../middleware/auth.middleware.js";
 import {
     getCurrentUser,
+    getUserById,
     getAllUsers,
     createUser,
     updateUser,
@@ -86,6 +87,28 @@ router.get("/", authenticateToken, requireRole(["admin"]), getAllUsers);
  *         description: Current user profile
  */
 router.get("/me", authenticateToken, getCurrentUser);
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User details
+ *       404:
+ *         description: User not found
+ */
+router.get("/:id", authenticateToken, getUserById);
 
 /**
  * @swagger

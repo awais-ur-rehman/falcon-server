@@ -44,6 +44,16 @@ export const getCurrentUser = async (userId: string): Promise<Omit<IUser, 'passw
   return user;
 };
 
+export const getUserById = async (userId: string): Promise<Omit<IUser, 'password'>> => {
+  const user = await User.findById(userId).select("-password");
+
+  if (!user) {
+    throw new APIError("User not found", 404);
+  }
+
+  return user;
+};
+
 export const getAllUsers = async (requestingUserId: string): Promise<Omit<IUser, 'password'>[]> => {
   const currentUser = await User.findById(requestingUserId);
 

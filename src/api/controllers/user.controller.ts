@@ -98,10 +98,39 @@ export const getCurrentUser = async (
 
     res.json({
       success: true,
-      data: { user }
+      data: user
     });
   } catch (error: any) {
-    console.error("Get user error:", error);
+    console.error("Get current user error:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message || "Internal server error"
+    });
+  }
+};
+
+export const getUserById = async (
+  req: AuthRequest,
+  res: Response<ApiResponse>
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication required"
+      });
+      return;
+    }
+
+    const { id } = req.params;
+    const user = await UserService.getUserById(id);
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error: any) {
+    console.error("Get user by ID error:", error);
     res.status(error.statusCode || 500).json({
       success: false,
       error: error.message || "Internal server error"
